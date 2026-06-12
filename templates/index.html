@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroDis — Diagnosis Awal Gangguan Disosiasi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif; }
+    body { background-color: #f8fafc; color: #1e293b; }
+
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    .symptom-checkbox { display: none; }
+    .symptom-checkbox:checked + .symptom-card { border-color: #2563eb; background: #eff6ff; }
+    .symptom-checkbox:checked + .symptom-card .check-box { background: #2563eb; border-color: #2563eb; }
+    .symptom-checkbox:checked + .symptom-card .check-icon { display: block; }
+
+    .check-box {
+      width: 20px; height: 20px;
+      border: 2px solid #cbd5e1; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .check-icon { display: none; color: white; font-size: 14px; font-weight: bold; }
+
+    .symptom-card {
+      border: 1px solid #e2e8f0; background: white;
+      border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s;
+    }
+    .symptom-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+    .progress-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b; }
+    .progress-step.active { color: #2563eb; font-weight: 600; }
+    .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+    .progress-step.active .progress-dot { background: #2563eb; }
+
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+      border: 1px solid #e0e7ff; border-radius: 16px; padding: 32px;
+    }
+
+    .confidence-ring {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb 0%, #14b8a6 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 36px; font-weight: 700;
+      box-shadow: 0 8px 24px rgba(37,99,235,0.2);
+      flex-shrink: 0;
+    }
+
+    .trigger-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 12px; background: #f1f5f9;
+      border-radius: 6px; font-size: 13px; color: #475569;
+    }
+
+    .mechanism-step {
+      background: white; border-left: 3px solid #2563eb;
+      padding: 12px 16px; border-radius: 6px;
+      font-size: 13px; color: #334155; font-weight: 500;
+    }
+
+    .badge-info {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; background: #f0f9ff;
+      border: 1px solid #bfdbfe; border-radius: 6px;
+      font-size: 12px; color: #0369a1; font-weight: 500;
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+
+  <!-- HEADER -->
+  <header class="border-b border-gray-200 bg-white sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900">NeuroDis</h1>
+          <p class="text-xs text-slate-500">AI Screening Tool</p>
+        </div>
+      </div>
+      <div class="badge-info">&#9432; Bukan pengganti diagnosis medis</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="bg-gradient-to-b from-blue-50 to-transparent py-12">
+    <div class="max-w-4xl mx-auto px-6 text-center fade-in">
+      <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+        Diagnosis Awal<br/>
+        <span class="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">Gangguan Disosiasi</span>
+      </h2>
+      <p class="text-lg text-slate-600 mb-2 max-w-2xl mx-auto">
+        Sistem pakar berbasis AI untuk mendeteksi pola gejala dissociative disorder dengan pendekatan ilmiah.
+      </p>
+      <p class="text-sm text-slate-500">Didukung oleh forward chaining inference engine</p>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-center gap-8 flex-wrap">
+      <div class="progress-step {% if show_result %}active{% endif %}" id="step-select">
+        <div class="progress-dot"></div>
+        <span>Pilih Gejala</span>
+      </div>
+      <div class="h-px w-8 md:w-12 bg-gray-300"></div>
+      <div class="progress-step {% if show_result %}active{% endif %}" id="step-analyze">
+        <div class="progress-dot"></div>
+        <span>Analisis</span>
+      </div>
+      <div class="h-px w-8 md:w-12 bg-gray-300"></div>
+      <div class="progress-step {% if show_result %}active{% endif %}" id="step-result">
+        <div class="progress-dot"></div>
+        <span>Hasil</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto px-6 pb-20">
+
+    {% if not show_result %}
+    <!-- ══ FORM ══ -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+      <div class="lg:col-span-3">
+        <form method="POST" action="/analyze" id="symptom-form">
+
+          <div class="mb-8">
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Pilih Gejala yang Dialami</h3>
+            <p class="text-slate-600">Centang gejala yang relevan dengan pengalaman Anda</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {% for code, symptom in symptoms.items() %}
+            <div class="card-hover fade-in">
+              <input
+                type="checkbox"
+                name="symptoms"
+                id="sym-{{ code }}"
+                value="{{ code }}"
+                class="symptom-checkbox"
+                onchange="updateCounter()"
+              />
+              <label for="sym-{{ code }}" class="symptom-card flex gap-4 cursor-pointer">
+                <div class="check-box">
+                  <span class="check-icon">&#10003;</span>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{{ code }}</span>
+                    <span class="text-sm font-semibold text-slate-900">{{ symptom.label }}</span>
+                  </div>
+                  <p class="text-sm text-slate-600">{{ symptom.description }}</p>
+                  <p class="text-xs text-slate-500 mt-1">{{ symptom.detail }}</p>
+                </div>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
+            <p class="text-sm text-amber-900">
+              <strong>&#9888; Perhatian:</strong> Alat ini hanya untuk skrining awal dan edukasi.
+              Hasil bukan diagnosis klinis. Selalu konsultasikan dengan psikolog atau psikiater berlisensi.
+            </p>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-20 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <div class="mb-6">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Gejala Dipilih</p>
+            <div class="flex items-baseline gap-1">
+              <span id="badge-count" class="text-4xl font-bold text-blue-600">0</span>
+              <span class="text-lg text-slate-400">/</span>
+              <span class="text-lg text-slate-500">8</span>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-700">
+            <span id="status-text">Pilih gejala terlebih dahulu</span>
+          </div>
+
+          <button
+            type="submit"
+            form="symptom-form"
+            id="analyze-btn"
+            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            Mulai Analisis
+          </button>
+
+          <p class="text-xs text-slate-500 text-center mt-4">Processing dilakukan secara real-time</p>
+        </div>
+      </div>
+
+    </div>
+
+    {% else %}
+    <!-- ══ RESULT ══ -->
+    <div class="fade-in">
+      <div class="mb-8 flex items-center justify-between">
+        <h3 class="text-2xl font-bold text-slate-900">Hasil Analisis</h3>
+        <a href="/" class="text-sm text-blue-600 hover:text-blue-700 font-medium">&#8592; Analisis Ulang</a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT: Main Result -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <!-- Diagnosis Card -->
+          <div class="result-card">
+            <div class="flex flex-col md:flex-row gap-8 items-start md:items-center">
+              <div class="confidence-ring">{{ result.confidence }}%</div>
+              <div class="flex-1">
+                <h4 class="text-3xl font-bold text-slate-900 mb-2">{{ result.diagnosis }}</h4>
+                <p class="text-lg text-blue-600 font-semibold mb-3">{{ result.subtitle }}</p>
+                {% if result.category != '—' %}
+                <p class="text-sm text-slate-600">&#128193; <strong>Kategori:</strong> {{ result.category }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Matched Symptoms -->
+          {% if result.matched_labels %}
+          <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h5 class="font-bold text-slate-900 mb-4">&#10003; Gejala yang Cocok</h5>
+            <div class="flex flex-wrap gap-2">
+              {% for label in result.matched_labels %}
+              <span class="trigger-item">{{ label }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Triggers -->
+          {% if result.triggers %}
+          <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h5 class="font-bold text-slate-900 mb-3">&#128269; Kemungkinan Pemicu</h5>
+            <p class="text-sm text-slate-600 mb-4">{{ result.trigger_explanation }}</p>
+
+            <p class="text-xs font-semibold text-slate-500 uppercase mb-3">Pemicu yang sering ditemukan:</p>
+            <div class="flex flex-wrap gap-2 mb-6">
+              {% for trigger in result.triggers %}
+              <span class="trigger-item">&#11088; {{ trigger }}</span>
+              {% endfor %}
+            </div>
+
+            {% if result.trigger_mechanism %}
+            <p class="text-xs font-semibold text-slate-500 uppercase mb-3">Bagaimana Pemicu Ini Menyebabkan Gejala?</p>
+            <div class="space-y-2">
+              {% for step in result.trigger_mechanism %}
+                {% if step == '↓' %}
+                  <div class="text-center text-slate-400 py-1">&#8595;</div>
+                {% else %}
+                  <div class="mechanism-step">{{ step }}</div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Explanation -->
+          <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <h5 class="font-bold text-slate-900 mb-3">&#128161; Penjelasan Kondisi Ini</h5>
+            <p class="text-slate-700 leading-relaxed">{{ result.explanation }}</p>
+          </div>
+
+          <!-- Recommendation -->
+          <div class="bg-green-50 border border-green-200 rounded-2xl p-6">
+            <h5 class="font-bold text-green-900 mb-3">&#9989; Apa yang Bisa Anda Lakukan?</h5>
+            <p class="text-green-900 leading-relaxed">{{ result.recommendation }}</p>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Sidebar Summary -->
+        <div class="space-y-6">
+
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 sticky top-20">
+            <p class="text-xs font-semibold text-slate-500 uppercase mb-4">Ringkasan</p>
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs text-slate-500 mb-1">Tingkat Keyakinan</p>
+                <p class="text-2xl font-bold text-blue-600">{{ result.confidence }}%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 mb-1">Gejala Cocok</p>
+                <p class="text-lg font-bold text-slate-900">{{ result.match_count }} / {{ result.total_conditions }}</p>
+              </div>
+              <div class="pt-3 border-t border-gray-200">
+                <p class="text-xs font-semibold text-slate-500 uppercase mb-3">Status Kondisi</p>
+                {% if result.severity == 'danger' %}
+                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-semibold">
+                    &#128308; Perlu Perhatian
+                  </span>
+                {% elif result.severity == 'warning' %}
+                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-sm font-semibold">
+                    &#128993; Perlu Evaluasi
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-semibold">
+                    &#128994; Normal
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- All Rules -->
+          <div class="bg-white border border-gray-200 rounded-2xl p-6">
+            <p class="text-xs font-semibold text-slate-500 uppercase mb-4">Semua Hasil Analisis</p>
+            <div class="space-y-4">
+              {% for r in result.all_results %}
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-mono text-slate-600">{{ r.rule_id }}</span>
+                  <span class="text-xs font-bold text-slate-700">{{ r.confidence }}%</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  {% if r.severity == 'danger' %}
+                    <div class="h-full rounded-full transition-all" style="width: {{ r.confidence }}%; background: #ef4444;"></div>
+                  {% elif r.severity == 'warning' %}
+                    <div class="h-full rounded-full transition-all" style="width: {{ r.confidence }}%; background: #f59e0b;"></div>
+                  {% else %}
+                    <div class="h-full rounded-full transition-all" style="width: {{ r.confidence }}%; background: #10b981;"></div>
+                  {% endif %}
+                </div>
+                <p class="text-xs text-slate-600 mt-1">{{ r.diagnosis }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-gray-200 bg-white mt-12 py-8">
+    <div class="max-w-6xl mx-auto px-6 text-center text-sm text-slate-600">
+      <p>NeuroDis &copy; 2025 &mdash; AI-Powered Screening for Dissociative Disorders</p>
+      <p class="text-xs text-slate-500 mt-2">Built with Flask &bull; Tailwind CSS &bull; Forward Chaining Inference Engine</p>
+    </div>
+  </footer>
+
+  <script>
+    function updateCounter() {
+      const checked = document.querySelectorAll(".symptom-checkbox:checked").length;
+      const badge   = document.getElementById("badge-count");
+      const btn     = document.getElementById("analyze-btn");
+      const status  = document.getElementById("status-text");
+
+      badge.textContent = checked;
+
+      if (checked === 0) {
+        btn.disabled     = true;
+        status.textContent = "Pilih gejala terlebih dahulu";
+      } else if (checked < 3) {
+        btn.disabled     = false;
+        status.textContent = checked + " gejala dipilih — siap untuk analisis";
+      } else {
+        btn.disabled     = false;
+        status.textContent = checked + " gejala dipilih — analisis akan lebih akurat";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      updateCounter();
+    });
+  </script>
+
+</body>
+</html>
