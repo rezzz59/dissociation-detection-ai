@@ -165,7 +165,3 @@ Response berisi data seperti:
 - Gunakan `requirements.txt` agar instalasi dependency lebih konsisten.
 
 ---
-
-## Lisensi
-
-Belum ditentukan. Tambahkan lisensi (MIT/Apache-2.0/dll) sesuai kebutuhan proyek.
